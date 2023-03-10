@@ -18,6 +18,9 @@
   "torrent"
   "Major mode for torrent files."
 
+  ;; don't save it incidentally
+  (setq buffer-file-name nil)
+
   (set-buffer-multibyte nil)
   (goto-char (point-min))
   (setq tabulated-list-format [("Idx" 4 t) ("Size" 8 t) ("Name" 80 t)]
