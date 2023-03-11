@@ -14,6 +14,7 @@
 (require 'tablist)
 (require 'bencoding)
 
+;;;###autoload
 (define-derived-mode torrent-mode tablist-mode
   "torrent"
   "Major mode for torrent files."
