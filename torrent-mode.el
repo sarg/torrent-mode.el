@@ -20,6 +20,7 @@
   "Major mode for torrent files."
 
   ;; don't save it incidentally
+  (setq-local original-buffer-file-name buffer-file-name)
   (setq buffer-file-name nil)
 
   (set-buffer-multibyte nil)
