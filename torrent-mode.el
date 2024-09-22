@@ -1,4 +1,4 @@
-;;; torrent-mode.el --- Display torrent files in a tabulated view
+;;; torrent-mode.el --- Display torrent files in a tabulated view  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 by Sergey Trofimov
 
@@ -23,31 +23,38 @@
   (setq-local original-buffer-file-name buffer-file-name)
   (setq buffer-file-name nil)
 
-  (set-buffer-multibyte nil)
   (goto-char (point-min))
-  (setq tabulated-list-format [("Idx" 4 t) ("Size" 8 t) ("Name" 80 t)]
-        tabulated-list-entries
-        (let* ((bencoding-dictionary-type 'hash-table)
-               (data (bencoding-read))
-               (info (gethash "info" data))
-               (files (or (gethash "files" info)
-                          (list info))))
+  (let* ((bencoding-dictionary-type 'hash-table)
+         (data (progn (set-buffer-multibyte nil) (bencoding-read) ))
+         (info (gethash "info" data))
+         (files (or (gethash "files" info) (list info)))
+         (sortfun
+          (lambda (n)
+            (lambda (A B) (value< (get-text-property 0 'sortval (aref (nth 1 A) n))
+                                  (get-text-property 0 'sortval (aref (nth 1 B) n)))))))
 
+    (setq tabulated-list-entries
           (seq-map-indexed
            (lambda (file index)
              (let* ((size (gethash "length" file))
-                    (name (string-join (or (gethash "path" file)
-                                           (list (gethash "name" file)))
-                                       "/")))
+                    (name (decode-coding-string
+                           (string-join (or (gethash "path" file)
+                                            (list (gethash "name" file)))
+                                        "/")
+                           'utf-8)))
 
-               (list index (vector (format "%03d" index)
-                                   (file-size-human-readable size)
+               (list index (vector (propertize (number-to-string index) 'sortval index)
+                                   (propertize (file-size-human-readable size) 'sortval size)
                                    name))))
            files))
 
-        tabulated-list-padding 3
-        tabulated-list-sort-key (cons "Idx" nil))
+    (setq tabulated-list-format (vector `("Idx" 4 ,(funcall sortfun 0) . (:right-align t))
+                                        `("Size" 6 ,(funcall sortfun 1) . (:right-align t))
+                                        `("Name" 80 t))
+          tabulated-list-padding 3
+          tabulated-list-sort-key (cons "Idx" nil)))
 
+  (set-buffer-multibyte 't)
   (tabulated-list-init-header)
   (tabulated-list-print)
   (hl-line-mode))
