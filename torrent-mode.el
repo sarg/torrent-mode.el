@@ -1,6 +1,7 @@
 ;;; torrent-mode.el --- Display torrent files in a tabulated view  -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2023 by Sergey Trofimov
+;; SPDX-License-Identifier: Unlicense
 
 ;; Author: Sergey Trofimov <sarg@sarg.org.ru>
 ;; Version: 0.1
@@ -25,13 +26,13 @@
 
   (goto-char (point-min))
   (let* ((bencoding-dictionary-type 'hash-table)
-         (data (progn (set-buffer-multibyte nil) (bencoding-read) ))
+         (data (progn (set-buffer-multibyte nil) (bencoding-read)))
          (info (gethash "info" data))
          (files (or (gethash "files" info) (list info)))
          (sortfun
           (lambda (n)
-            (lambda (A B) (value< (get-text-property 0 'sortval (aref (nth 1 A) n))
-                                  (get-text-property 0 'sortval (aref (nth 1 B) n)))))))
+            (lambda (A B) (string-lessp (get-text-property 0 'sortval (aref (nth 1 A) n))
+                                        (get-text-property 0 'sortval (aref (nth 1 B) n)))))))
 
     (setq tabulated-list-entries
           (seq-map-indexed
@@ -43,8 +44,8 @@
                                         "/")
                            'utf-8)))
 
-               (list index (vector (propertize (number-to-string index) 'sortval index)
-                                   (propertize (file-size-human-readable size) 'sortval size)
+               (list index (vector (propertize (number-to-string index) 'sortval (format "%06d" index))
+                                   (propertize (file-size-human-readable size) 'sortval (format "%016d" size))
                                    name))))
            files))
 
