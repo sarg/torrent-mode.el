@@ -1,1 +1,34 @@
-This is a minor mode based on tablist-mode to view contents of a torrent file.
+This is a minor mode based on =tablist-mode= to view contents of a torrent file.
+
+* Setup
+#+begin_src emacs-lisp
+(use-package torrent-mode
+  :mode ("\\.torrent\\'" . 'torrent-mode))
+#+end_src
+
+* aria2 integration
+#+begin_src emacs-lisp
+(use-package aria2
+  :custom
+  (aria2-start-rpc-server t))
+#+end_src
+#+begin_src emacs-lisp
+(defun torrent-do-download-selected (dest-dir)
+  "Download ARG entries."
+  (interactive
+   (list (read-directory-name "Directory: "
+                              (or (dired-dwim-target-directory)
+                                  aria2-download-directory)
+                              nil
+                              t))
+   'torrent-mode)
+  ;; ensure aria2 is started
+  (with-current-buffer (get-buffer-create aria2-list-buffer-name)
+    (aria2-mode))
+  (addTorrent aria2--cc original-buffer-file-name
+              :select-file (seq-map #'car (tablist-get-marked-items))
+              :dir (expand-file-name dest-dir)))
+#+end_src
+
+Now bind =torrent-do-download-selected= in =torrent-mode-map= or run
+interactively to download only selected items of a torrent file.
