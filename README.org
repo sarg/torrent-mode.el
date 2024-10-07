@@ -1,12 +1,15 @@
+* Torrent Mode
+[[https://melpa.org/#/torrent-mode][file:https://melpa.org/packages/torrent-mode-badge.svg]]
+
 This is a minor mode based on =tablist-mode= to view contents of a torrent file.
 
-* Setup
+** Setup
 #+begin_src emacs-lisp
 (use-package torrent-mode
   :mode ("\\.torrent\\'" . 'torrent-mode))
 #+end_src
 
-* aria2 integration
+** aria2 integration
 #+begin_src emacs-lisp
 (use-package aria2
   :custom
